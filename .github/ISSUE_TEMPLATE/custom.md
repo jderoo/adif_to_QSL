@@ -1,5 +1,5 @@
 ---
-name: Custom issue template
+name: Bug or Feature
 about: Submit either bug or feature request.
 title: Bug and or Feature
 labels: ''
