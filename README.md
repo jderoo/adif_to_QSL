@@ -31,4 +31,6 @@ Place your ADIF log in the same folder and call it `log.adi`
 
 Run the program.
 
+Oh very important, Change the QSL card graphic or you'll confuse people when they get My QSL card but for your contact...
+
 You may want to check with your email provider for rate limits.
