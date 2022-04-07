@@ -66,13 +66,11 @@ for record in log[0]:
     grid, name, nickname, email, error_text = qrz.lookup(record["CALL"])
     time_utc = f"{record['TIME_ON'][0:2]}:{record['TIME_ON'][2:4]}"
 
-    # If there is a FREQ tag in the adif record it will favor that.
-    # otherwise use whats in the BAND field.
     freq_band = None
-    if "FREQ" in record:
-        freq_band = "{:.3f}".format(float(record["FREQ"]))
-    else:
+    if "BAND" in record:
         freq_band = record["BAND"]
+    else:
+        freq_band = "{:.3f}".format(float(record["FREQ"]))
 
     the_date = (
         f"{record['QSO_DATE'][0:4]}-{record['QSO_DATE'][4:6]}-{record['QSO_DATE'][6:8]}"
