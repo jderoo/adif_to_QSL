@@ -18,7 +18,7 @@ username = my_email_address  # may or maynot be same as email addr.
 
 password = "secretpassword"
 
-email_text = "Thanks for the QSO, 73, Mike AC4LL."  # message body
+email_text = "Thanks for the QSO, 73, Mike K6GTE."  # message body
 
 qrz = QRZlookup("AC4LL", "secretpassword")  # enter your userid and password
 ```
