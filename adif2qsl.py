@@ -9,8 +9,10 @@ Emails card to contact.
 # Who's at fault_____: Mike K6GTE
 # Where to yell at me: michael.bridak@gmail.com
 
+import configparser
 import smtplib
 from os.path import basename
+from os.path import isfile
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -19,20 +21,35 @@ from PIL import Image, ImageDraw, ImageFont
 import adif_io
 from lookup import QRZlookup
 
-my_email_address = "youremail@address.com"
+config = configparser.ConfigParser()
 
-mailserver = "smtp.gmail.com"  # your mail server
+try:
+    isfile('config')
+    config.read('config')
+except:
+    exit("Error: Unable to open or read config")
 
-username = my_email_address  # may or maynot be same as email addr.
+try:
+    my_email_address = config['email']['my_email_address']
+    mailserver       = config['email']['mailserver']
+    username         = config['email']['username']
+    password         = config['email']['password']
+    email_text       = config['email']['text']
+except:
+    exit("Error: Missing at least one email configuration")
 
-password = "secretpassword"
+try:
+    qrz = QRZlookup(config['qrz']['userid'], config['qrz']['password'])
+except:
+    exit("Error: QRZlookup initialization failure")
 
-email_text = "Thanks for the QSO, 73, Mike K6GTE."  # message body
+try:
+    logfilename = config['general']['defaultlogfilename']
+    log = adif_io.read_from_file(logfilename)
+except:
+    exit("Error: Can't open logfile") 
 
-qrz = QRZlookup("AC4LL", "secretpassword")  # enter your userid and password
-
-log = adif_io.read_from_file("./log.adi")
-
+print(f"After logfile read")
 
 def send_mail(send_from, send_to, subject, text, files=None, server="127.0.0.1"):
     """its a doc string..."""
@@ -59,7 +76,7 @@ def send_mail(send_from, send_to, subject, text, files=None, server="127.0.0.1")
         server.sendmail(send_from, send_to, msg.as_string())
         server.close()
     except smtplib.SMTPException as err:
-        print(f"Whoops! SMTP error - {err}")
+        exit("Whoops! SMTP error - {err}")
 
 
 for record in log[0]:

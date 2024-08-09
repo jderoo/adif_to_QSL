@@ -1,0 +1,11 @@
+[general]
+        defaultlogfilename = log.adi
+[email]
+        my_email_address = youremail@address.com
+        mailserver = smtp.foomail.com
+        username = smtp_login_username
+        password = smtp_login_password
+        text = Thanks for the QSO, 73, Alfalfa AB1CDE
+[qrz]
+        userid = your_qrz_id
+        password = your_qrz_pw
