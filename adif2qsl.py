@@ -10,6 +10,7 @@ Emails card to contact.
 # Where to yell at me: michael.bridak@gmail.com
 
 import configparser
+import csv
 import smtplib
 from os.path import basename
 from os.path import isfile
@@ -44,95 +45,41 @@ except:
     exit("Error: QRZlookup initialization failure")
 
 try:
-    logfilename = config['general']['defaultlogfilename']
+    logfilename = config['general']['logfilename']
     log = adif_io.read_from_file(logfilename)
 except:
     exit("Error: Can't open logfile") 
 
 print(f"After logfile read")
 
-def send_mail(send_from, send_to, subject, text, files=None, server="127.0.0.1"):
-    """its a doc string..."""
-    assert isinstance(send_to, list)
+with open(config['general']['keysfilename'],newline='') as keysfile:
+    reader = csv.reader(keysfile)
+    for row in reader:
+        keys = row
 
-    msg = MIMEMultipart()
-    msg["From"] = send_from
-    msg["To"] = COMMASPACE.join(send_to)
-    msg["Date"] = formatdate(localtime=True)
-    msg["Subject"] = subject
+# allocate the data storage
+qso_data = []
+# iterate through the qsos
+for row_num, qso in enumerate(log[0]):
+    # Calculate YEAR, MONTH, DAY, HOUR, an MINUTE from the dain-bramaged
+    # format used by ADIF
+    qso['YEAR']=qso['QSO_DATE'][0:4]
+    qso['MONTH']=qso['QSO_DATE'][4:6]
+    qso['DAY']=qso['QSO_DATE'][6:8]
+    qso['HOUR']=qso['TIME_ON'][0:2]
+    qso['MINUTE']=qso['TIME_ON'][2:4]
+    
+    qso_row = []
+    
+    # iterate through the keys
+    for col_num, key in enumerate(keys):
+        if key in qso:
+            qso_row.append(qso[key])
+        else:
+            qso_row.append('')
+    qso_data.append(qso_row)
 
-    msg.attach(MIMEText(text))
-
-    for f in files or []:
-        with open(f, "rb") as fil:
-            part = MIMEApplication(fil.read(), Name=basename(f))
-        part["Content-Disposition"] = 'attachment; filename="%s"' % basename(f)
-        msg.attach(part)
-
-    try:
-        server = smtplib.SMTP_SSL(server, 465)
-        server.ehlo()
-        server.login(username, password)
-        server.sendmail(send_from, send_to, msg.as_string())
-        server.close()
-    except smtplib.SMTPException as err:
-        exit("Whoops! SMTP error - {err}")
-
-
-for record in log[0]:
-    grid, name, nickname, email, error_text = qrz.lookup(record["CALL"])
-    time_utc = f"{record['TIME_ON'][0:2]}:{record['TIME_ON'][2:4]}"
-
-    freq_band = None
-    if "BAND" in record:
-        freq_band = record["BAND"]
-    else:
-        freq_band = "{:.3f}".format(float(record["FREQ"]))
-
-    the_date = (
-        f"{record['QSO_DATE'][0:4]}-{record['QSO_DATE'][4:6]}-{record['QSO_DATE'][6:8]}"
-    )
-    print(
-        f"{record['CALL']} {record['MODE']} {freq_band} {record['BAND']} "
-        f"{time_utc} {record['RST_SENT']} {record['RST_RCVD']} {email}"
-    )
-
-    img = Image.open("qslcard.png")
-    working_image = ImageDraw.Draw(img)
-    Font = ImageFont.truetype("./JetBrainsMono-Regular.ttf", 24)
-    smFont = ImageFont.truetype("./JetBrainsMono-Regular.ttf", 14)
-    #
-    # This section places the text on the card.
-    # The first group  of numbers is the offset in pixels from upper left 0,0
-    # Normal text anchor point is upper left of text.
-    # lines with anchor='ms' places the anchor point in the middle of the text.
-    #
-    working_image.text(
-        (55, 331), record["CALL"], font=Font, anchor="ms", fill=(0, 0, 0)
-    )
-    working_image.text((120, 305), the_date, font=smFont, fill=(0, 0, 0))
-    working_image.text((140, 320), time_utc, font=smFont, fill=(0, 0, 0))
-    working_image.text((266, 331), freq_band, font=Font, anchor="ms", fill=(0, 0, 0))
-    working_image.text(
-        (372, 331), record["MODE"], font=Font, anchor="ms", fill=(0, 0, 0)
-    )
-    working_image.text(
-        (430, 305), " SENT: " + record["RST_SENT"], font=smFont, fill=(0, 0, 0)
-    )
-    working_image.text(
-        (430, 320), " RCVD: " + record["RST_RCVD"], font=smFont, fill=(0, 0, 0)
-    )
-    img.save("QSL_CARD.png")
-    if email:
-        send_mail(
-            my_email_address,
-            [
-                email,
-            ],
-            f"Our QSO on {the_date}",
-            email_text,
-            [
-                "QSL_CARD.png",
-            ],
-            mailserver,
-        )
+with open(config['general']['csvfilename'],'w',newline='') as csvfile:
+    writer = csv.writer(csvfile)
+    writer.writerow(keys)
+    writer.writerows(qso_data)
