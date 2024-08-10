@@ -26,3 +26,16 @@ To make it work,
 7. Run the program.
    `python3 adif2qsl.py`
 
+### TODO ###
+  * Handle non-existant frequencies or ones with too many significant
+    figures
+  * Combine adif reader and CSV writer functionality so the whole thing
+    doesn't have to be stored
+  * Think about adding mechanism to have additional info (e.g.,
+    portable/mobile operation checkboxes & location, qsl-pse and qsl-tnx
+    check boxes or circles), and QSL-specific comments
+  * Think about resurrecting the print-data-in-specific-positions
+    functionality to print data on pre-printed QSL cards.  Might be
+    easier to use MS Publisher to handle the positioning, but this way
+    might allow more programmatic control.
+  * Keep looking for better way into MS Publisher - csv is non-optimal
